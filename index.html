@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FuelSense | Tech Intelligence Dashboard</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+    <!-- Header Navigation -->
+    <header class="app-header">
+        <div class="logo">
+            <i class="fa-solid fa-bolt logo-icon"></i>
+            <span>FuelSense <span class="highlight">2.0</span></span>
+        </div>
+        <div class="header-actions">
+            <button id="btn-api-settings" class="icon-btn" title="API Configuration">
+                <i class="fa-solid fa-key"></i>
+            </button>
+            <button id="theme-toggle" class="icon-btn" title="Toggle Dark Mode">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Tab Navigation -->
+    <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="tab-calc"><i class="fa-solid fa-calculator"></i> Calculator</button>
+        <button class="tab-btn" data-tab="tab-rates"><i class="fa-solid fa-chart-line"></i> Manage Rates</button>
+        <button class="tab-btn" data-tab="tab-about"><i class="fa-solid fa-circle-info"></i> About</button>
+    </nav>
+
+    <main class="app-container">
+
+        <!-- Live Prices Ticker (Scraped from Web) -->
+        <section class="price-ticker mt-1 mb-2">
+            <div class="price-pill petrol-pill" id="ticker-petrol"><i class="fa-solid fa-droplet text-orange"></i>
+                Petrol: <span class="rate-val"><i class="fa-solid fa-spinner fa-spin"></i></span></div>
+            <div class="price-pill diesel-pill" id="ticker-diesel"><i class="fa-solid fa-truck text-muted"></i> Diesel:
+                <span class="rate-val"><i class="fa-solid fa-spinner fa-spin"></i></span></div>
+            <div class="price-pill cng-pill" id="ticker-cng"><i class="fa-solid fa-leaf text-green"></i> CNG: <span
+                    class="rate-val">75.00</span></div>
+            <div class="price-pill ev-pill" id="ticker-ev"><i class="fa-solid fa-bolt text-blue"></i> EV: <span
+                    class="rate-val">15.00</span></div>
+        </section>
+
+        <!-- ======================= -->
+        <!-- TAB 1: CALCULATOR (MAIN) -->
+        <!-- ======================= -->
+        <div id="tab-calc" class="tab-pane active-pane">
+
+            <!-- Map Module -->
+            <section class="card map-card">
+                <h3><i class="fa-solid fa-satellite"></i> GPS Routing Link</h3>
+
+                <div class="search-container">
+                    <div class="input-modern-group">
+                        <div class="input-icon-wrapper">
+                            <i class="fa-solid fa-location-dot text-green"></i>
+                            <input type="text" id="start-location" placeholder="Departure (e.g., Delhi)">
+                        </div>
+                        <div class="input-icon-wrapper">
+                            <i class="fa-solid fa-flag-checkered text-red"></i>
+                            <input type="text" id="end-location" placeholder="Arrival (e.g., Chandigarh)">
+                        </div>
+                        <button id="btn-find-route" class="btn-search-route">Engage Route <i
+                                class="fa-solid fa-satellite-dish"></i></button>
+                    </div>
+                </div>
+
+                <!-- Interactive Google Map -->
+                <div id="map"></div>
+
+                <div class="map-controls mt-2">
+                    <button id="btn-clear-map" class="btn-secondary"><i class="fa-solid fa-trash-can"></i> Clear
+                        Route</button>
+                    <div class="badges-wrapper">
+                        <div class="badge dist-badge hidden" id="dist-badge">0 km</div>
+                        <div class="badge pump-badge hidden" id="pump-badge"><i class="fa-solid fa-spinner fa-spin"></i>
+                            Wait</div>
+                    </div>
+                </div>
+                <p class="subtitle mt-1 text-center">Drag the blue route line on the map to interactively alter your
+                    path.</p>
+            </section>
+
+            <!-- Input Module -->
+            <section class="card input-card mt-3">
+                <h3><i class="fa-solid fa-car-battery"></i> Telemetry & Vehicle</h3>
+
+                <!-- Dual Dropdown: Brand -> Model -->
+                <div class="dual-dropdown-row mt-2">
+                    <div class="form-group flex-1">
+                        <label>Brand</label>
+                        <select id="brand-select">
+                            <option value="" disabled selected>Select Brand</option>
+                            <!-- Auto-populated -->
+                        </select>
+                    </div>
+                    <div class="form-group flex-1">
+                        <label>Model</label>
+                        <select id="model-select" disabled>
+                            <option value="" disabled selected>Select Model</option>
+                            <!-- Auto-populated -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Custom Mileage Hook -->
+                <div class="form-group hidden" id="custom-mileage-group">
+                    <label>Manual Mileage Override (km/l or km/charge)</label>
+                    <input type="number" id="custom-mileage" placeholder="e.g. 15.5" min="1" step="0.1">
+                </div>
+
+                <!-- Trip Dynamics Toggle -->
+                <div class="trip-dynamics-row mt-3">
+                    <div class="form-group flex-1">
+                        <label>Sector Engine</label>
+                        <div class="segmented-control env-control">
+                            <input type="radio" name="env" id="env-city" value="city" checked>
+                            <label for="env-city">City</label>
+
+                            <input type="radio" name="env" id="env-highway" value="highway">
+                            <label for="env-highway">Highway</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group flex-1">
+                        <label>Trip Vector</label>
+                        <div class="segmented-control trip-control">
+                            <input type="radio" name="trip_type" id="trip-one" value="one-way" checked>
+                            <label for="trip-one">Arrival</label>
+
+                            <input type="radio" name="trip_type" id="trip-round" value="round">
+                            <label for="trip-round">Return</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manual Distance Input Fallback -->
+                <div class="form-group mt-3">
+                    <label for="manual-dist">Route Distance (km) <span class="help-text text-orange">Auto-filled by Map
+                            or Type Manually</span></label>
+                    <div class="input-icon-wrapper" style="border-color: var(--primary-blue);">
+                        <i class="fa-solid fa-road text-blue"></i>
+                        <input type="number" id="manual-dist" placeholder="e.g. 150.5" min="0.1" step="0.1">
+                    </div>
+                </div>
+
+                <button id="btn-calculate" class="btn-primary mt-3 flex-center" disabled>
+                    <i class="fa-solid fa-microchip"></i> Calculate Dynamics
+                </button>
+            </section>
+
+            <!-- Results Dashboard -->
+            <section id="results-dashboard" class="card results-card hidden mt-3">
+                <h2 class="results-title"><i class="fa-solid fa-bolt-lightning"></i> Projection</h2>
+
+                <!-- Cost Header -->
+                <div class="cost-hero">
+                    <span class="currency">₹</span>
+                    <span id="res-total-cost">0</span>
+                </div>
+                <!-- Range Output -->
+                <div class="cost-range text-center mb-2">
+                    <span class="range-pill">Best: ₹<span id="cost-best">0</span></span>
+                    <span class="range-pill">Worst: ₹<span id="cost-worst">0</span></span>
+                </div>
+
+                <div class="results-grid">
+                    <div class="res-item">
+                        <span class="res-label">Vector</span>
+                        <span class="res-value" id="res-vector">-</span>
+                    </div>
+                    <div class="res-item">
+                        <span class="res-label">Efficiency</span>
+                        <span class="res-value" id="res-mileage">- km/l</span>
+                    </div>
+                    <div class="res-item">
+                        <span class="res-label">Total Distance</span>
+                        <span class="res-value" id="res-dist">0 km</span>
+                    </div>
+                    <div class="res-item">
+                        <span class="res-label">Energy Required</span>
+                        <span class="res-value" id="res-fuel-needed">0 L</span>
+                    </div>
+                </div>
+            </section>
+
+            <div class="spacer" style="height: 100px;"></div>
+        </div>
+
+        <!-- ======================= -->
+        <!-- TAB 2: LIVE FUEL RATES  -->
+        <!-- ======================= -->
+        <div id="tab-rates" class="tab-pane hidden-pane">
+            <section class="card">
+                <h3><i class="fa-solid fa-gas-pump"></i> Fuel Control Management</h3>
+                <p class="subtitle">FuelSense AI dynamically applies these baseline variables during calculation. You
+                    can override the live market rates securely in your local browser cache.</p>
+
+                <div class="fuel-rate-editor mt-4">
+                    <div class="form-group pb-2 border-b">
+                        <label>Petrol Base Rate (₹ / Litre)</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fa-solid fa-droplet text-orange"></i>
+                            <input type="number" id="edit-petrol" value="103.50" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-group pb-2 border-b">
+                        <label>Diesel Base Rate (₹ / Litre)</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fa-solid fa-truck text-muted"></i>
+                            <input type="number" id="edit-diesel" value="90.20" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-group pb-2 border-b">
+                        <label>CNG Base Rate (₹ / Kg)</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fa-solid fa-leaf text-green"></i>
+                            <input type="number" id="edit-cng" value="75.00" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-group pb-2 border-b">
+                        <label>EV Charging Cost (₹ / Unit)</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fa-solid fa-bolt text-blue"></i>
+                            <input type="number" id="edit-ev" value="15.00" step="0.01">
+                        </div>
+                    </div>
+
+                    <button id="btn-save-rates" class="btn-primary mt-3">Sync Parameters to Cache</button>
+                    <p id="rates-success-msg" class="text-green text-center mt-2 font-bold hidden">Rates Synced
+                        Successfully!</p>
+                </div>
+            </section>
+        </div>
+
+        <!-- ======================= -->
+        <!-- TAB 3: ABOUT FUEL SENSE -->
+        <!-- ======================= -->
+        <div id="tab-about" class="tab-pane hidden-pane">
+            <section class="card about-card glass-card">
+                <div class="text-center mb-3">
+                    <i class="fa-solid fa-bolt-lightning text-accent fa-3x mb-2"></i>
+                    <h2>FuelSense Version 2.0</h2>
+                    <p class="text-muted">Built exclusively for Indian Mobility</p>
+                </div>
+
+                <p style="line-height: 1.8; margin-bottom: 1rem;">
+                    FuelSense was designed specifically to bridge the gap between static map route planning and
+                    realistic financial projecting on heavily congested subcontinental infrastructures.
+                </p>
+
+                <p style="line-height: 1.8; margin-bottom: 1rem;">
+                    Standard calculators multiply flat distance by flat mileage. FuelSense
+                    analyzes the actual physical drag coefficient bounds (Best Case / Worst Case algorithms) based on
+                    your route variables, and identifies fuel infrastructure mapped along the
+                    grids.
+                </p>
+
+                <div class="mt-4 border-t pt-3">
+                    <h4 class="mb-2"><i class="fa-solid fa-microchip"></i> Architectural Features</h4>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check text-green"></i> 100+ precision-mapped Indian vehicle profiles.
+                        </li>
+                        <li><i class="fa-solid fa-check text-green"></i> Interactive draggable GIS map systems via
+                            Google Maps SDK.</li>
+                        <li><i class="fa-solid fa-check text-green"></i> 100% Serverless & Backend-Free execution.</li>
+                        <li><i class="fa-solid fa-check text-green"></i> LocalStorage Secure State Caching.</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <!-- ======================= -->
+        <!-- SETTINGS MODAL LAYER    -->
+        <!-- ======================= -->
+        <div id="api-modal" class="modal-overlay hidden">
+            <div class="modal-content glass-card">
+                <div class="modal-header">
+                    <h2><i class="fa-solid fa-lock text-blue"></i> Platform Configuration</h2>
+                    <button id="btn-close-api" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted text-sm mb-3">FuelSense requires a Google Maps API key for Live Map Routing. Your key is stored 100% locally on this device only.</p>
+                    <div class="form-group">
+                        <label>Google Maps Platform Key (Directions & Places)</label>
+                        <input type="password" id="input-gmaps-key" placeholder="AIzaSy...">
+                    </div>
+                    <button id="btn-save-api" class="btn-primary mt-4 flex-center" style="width: 100%">
+                        <i class="fa-solid fa-save"></i> Connect Hub
+                    </button>
+                    <div id="api-success-msg" class="text-green text-sm flex-center mt-2 hidden">
+                        <i class="fa-solid fa-check"></i> APIs Connected & Authenticated
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Application Logic -->
+    <script src="js/config.js"></script>
+    <script src="js/vehicles.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
