@@ -1,1 +1,17 @@
+name: Deploy FuelSense to GitHub Pages
 
+on:
+  push:
+    branches:
+      - main  # Set this to your default branch (main or master)
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
